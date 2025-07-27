@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>معرض صور العائلة - تصميم جديد</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=El+Messiri&display=swap');
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      font-family: 'El Messiri', sans-serif;
+      background: #fafafa;
+      direction: rtl;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    h1 {
+      margin-bottom: 40px;
+      font-weight: 700;
+      font-size: 2.5rem;
+      color: #4a4a4a;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    .slider-wrapper {
+      position: relative;
+      width: 90%;
+      max-width: 720px;
+      overflow: hidden;
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+      background: white;
+    }
+    .slider {
+      display: flex;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      cursor: grab;
+    }
+    .slider.dragging {
+      cursor: grabbing;
+      transition: none;
+    }
+    .slide {
+      min-width: 100%;
+      padding: 18px 12px;
+      box-sizing: border-box;
+    }
+    .slide img {
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.1);
+      object-fit: cover;
+      height: 430px;
+      transition: transform 0.3s ease;
+    }
+    .slide img:hover {
+      transform: scale(1.03);
+      filter: drop-shadow(0 0 8px rgba(0,0,0,0.15));
+    }
+    /* أزرار التنقل */
+    .nav-buttons {
+      margin-top: 28px;
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+    }
+    .nav-buttons button {
+      background: #2e86de;
+      border: none;
+      color: white;
+      padding: 14px 26px;
+      font-size: 17px;
+      font-weight: 600;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(46,134,222,0.4);
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    .nav-buttons button:hover {
+      background: #215cab;
+    }
+  </style>
+</head>
+<body>
+  <h1>معرض صور العائلة</h1>
+  <div class="slider-wrapper">
+    <div class="slider" id="slider">
+      <div class="slide"><img src="https://i.postimg.cc/wxZp0vMQ/Screenshot-20250727-021250.jpg" alt="العائلة 1" /></div>
+      <div class="slide"><img src="https://i.postimg.cc/MKB84Sj2/Messenger-creation-7-F72-E3-F2-BE87-4-F11-8-BD9-47-D678-B412-F7.jpg" alt="العائلة 2" /></div>
+      <div class="slide"><img src="https://i.postimg.cc/br32ft5r/Messenger-creation-B1-B74-D43-1205-4-C63-A58-E-25755887-A7-DD.jpg" alt="العائلة 3" /></div>
+      <div class="slide"><img src="https://i.postimg.cc/QCyxqkPQ/Messenger-creation-390-A452-C-DFAB-40-AB-ADB9-C932954-F892-C.jpg" alt="العائلة 4" /></div>
+      <div class="slide"><img src="https://i.postimg.cc/L5HZWTNG/Messenger-creation-B3-E48-FDB-8060-4746-B17-F-E880-D487659-C.jpg" alt="العائلة 5" /></div>
+    </div>
+  </div>
+
+  <div class="nav-buttons">
+    <button id="prevBtn" aria-label="السابق">&larr; السابق</button>
+    <button id="nextBtn" aria-label="التالي">التالي &rarr;</button>
+  </div>
+
+  <script>
+    const slider = document.getElementById('slider');
+    const slides = slider.children;
+    const totalSlides = slides.length;
+    let currentIndex = 0;
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function updateSlider() {
+      slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+    }
+
+    prevBtn.addEventListener('click', () => {
+      currentIndex = (currentIndex === 0) ? totalSlides -1 : currentIndex - 1;
+      updateSlider();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      currentIndex = (currentIndex === totalSlides -1) ? 0 : currentIndex + 1;
+      updateSlider();
+    });
+
+    // السحب بالماوس واللمس
+    let isDragging = false;
+    let startPos = 0;
+    let currentTranslate = 0;
+    let prevTranslate = 0;
+
+    slider.addEventListener('mousedown', dragStart);
+    slider.addEventListener('touchstart', dragStart);
+
+    slider.addEventListener('mouseup', dragEnd);
+    slider.addEventListener('mouseleave', dragEnd);
+    slider.addEventListener('touchend', dragEnd);
+
+    slider.addEventListener('mousemove', dragAction);
+    slider.addEventListener('touchmove', dragAction);
+
+    function dragStart(event) {
+      isDragging = true;
+      slider.classList.add('dragging');
+      startPos = getPositionX(event);
+      prevTranslate = currentTranslate;
+      event.preventDefault();
+    }
+
+    function dragAction(event) {
+      if (!isDragging) return;
+      const currentPosition = getPositionX(event);
+      const diff = currentPosition - startPos;
+      currentTranslate = prevTranslate + diff;
+      slider.style.transform = `translateX(${currentTranslate}px)`;
+    }
+
+    function dragEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      slider.classList.remove('dragging');
+
+      const movedBy = currentTranslate - prevTranslate;
+
+      if (movedBy < -120 && currentIndex < totalSlides -1) currentIndex++;
+      else if (movedBy > 120 && currentIndex > 0) currentIndex--;
+
+      updateSlider();
+    }
+
+    function getPositionX(event) {
+      return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+    }
+  </script>
+</body>
+</html>
